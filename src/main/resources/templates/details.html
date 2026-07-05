@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Event Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f3e5f5; }
+        .header-box { background-color: #4a0072; color: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .badge-score { font-size: 1rem; }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5 mb-5">
+    <a href="/" class="btn btn-outline-secondary mb-4">← Back to Events</a>
+
+    <div class="header-box mb-4" th:if="${event != null}">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 th:text="${event.name}">Event Name</h1>
+            <span class="badge bg-warning text-dark" th:text="${event.eventStatus}">Status</span>
+        </div>
+        <p class="lead mt-2" th:text="${event.description}">Desc</p>
+        <hr>
+        <div class="row">
+            <div class="col-md-3">📅 <strong>Start:</strong> <span th:text="${#temporals.format(event.startDate, 'dd-MM-yyyy')}">Date</span></div>
+            <div class="col-md-3">📍 <strong>Location:</strong> <span th:text="${event.location}">Loc</span></div>
+            <div class="col-md-3">👤 <strong>Organizer:</strong> <span th:text="${event.organizer.name} + ' ' + ${event.organizer.surname}">Org</span></div>
+            <div class="col-md-3">⏳ <strong>Duration:</strong> <span th:text="${event.duration}">Duration</span></div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-secondary">⚖️ Jury Panel</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" th:each="judge : ${event.judges}">
+                            👨‍⚖️ <span th:text="${judge.name} + ' ' + ${judge.surname}">Judge Name</span>
+                            <span class="badge bg-secondary rounded-pill float-end">Judge</span>
+                        </li>
+                        <li class="list-group-item text-muted" th:if="${event.judges.empty}">No judges assigned yet.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-secondary">🧠 Mentors</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" th:each="mship : ${event.mentorship}">
+                            🎓 <span th:text="${mship.mentor.name} + ' ' + ${mship.mentor.surname}">Mentor Name</span>
+                            <span class="small text-muted float-end">Avail: <span th:text="${mship.availableHours}">0</span>h</span>
+                        </li>
+                        <li class="list-group-item text-muted" th:if="${event.mentorship.empty}">No mentors assigned.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3 text-secondary">📊 Teams & Standings</h3>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-dark">
+                <tr>
+                    <th>Team Name</th>
+                    <th>Participants</th>
+                    <th>Project Name</th>
+                    <th>Avg Score</th>
+                    <th>Awards</th>
+                    <th>Judge Action</th>
+                    <th>Project Details & Tools</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="team : ${event.teams}">
+                    <td class="fw-bold text-primary" th:text="${team.teamName}">Alpha</td>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            <li th:each="member : ${team.members}" class="small">
+                                👤 <span th:text="${member.name} + ' ' + ${member.surname}">Bob</span>
+                            </li>
+                        </ul>
+                    </td>
+                    <td>
+                        <span th:if="${!team.submissions.empty}" th:text="${team.submissions[0].projectName}">Bot</span>
+                        <span th:if="${team.submissions.empty}" class="text-muted">-</span>
+                    </td>
+                    <td>
+                        <span th:if="${!team.submissions.empty}" class="badge bg-primary badge-score"
+                              th:text="${team.submissions[0].averageScore}">95.0</span>
+                        <span th:if="${team.submissions.empty}">-</span>
+                    </td>
+                    <td>
+                        <div th:each="reward : ${team.wonRewards}">
+                            <span class="badge bg-success">🏆 <span th:text="${reward.name}">Prize</span></span>
+                        </div>
+                    </td>
+                    <td>
+                        <span th:if="${!team.submissions.empty}">
+                            <a th:href="@{'/submission/' + ${team.submissions[0].submissionId} + '/evaluate'}"
+                               class="btn btn-sm btn-outline-dark">⚖️ Evaluate</a>
+                        </span>
+                    </td>
+                    <td>
+                        <div th:if="${!team.submissions.empty}">
+                            <strong th:text="${team.submissions[0].projectName}">Bot</strong><br>
+
+                            <small class="text-muted" th:if="${team.submissions[0].toolUsages != null and !team.submissions[0].toolUsages.empty}">
+                                🛠️ Tools:
+                                <span th:each="usage : ${team.submissions[0].toolUsages}">
+                                    <span class="badge bg-info text-dark"
+                                          th:text="${usage.tool.toolName} + ' v' + ${usage.version}">Java v17</span>
+                                </span>
+                            </small>
+                        </div>
+                        <span th:if="${team.submissions.empty}" class="text-muted">-</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h4>🎯 Challenges</h4>
+        <div class="list-group">
+            <div class="list-group-item" th:each="entry : ${event.challenges}">
+                <h5 class="mb-1" th:text="${entry.value.title}">Title</h5>
+                <p class="mb-1" th:text="${entry.value.description}">Desc</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
